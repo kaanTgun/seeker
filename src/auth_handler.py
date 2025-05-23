@@ -1,7 +1,7 @@
 import os # Add os import
 import firebase_admin
 from firebase_admin import credentials, auth
-from logger import setup_logger # Import the custom logger
+from src.logger import setup_logger # Import the custom logger
 
 log = setup_logger(__name__) # Setup logger for this module
 

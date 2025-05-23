@@ -2,8 +2,8 @@ import feedparser
 import requests
 from datetime import datetime, timezone # Import timezone
 from dateutil import parser as date_parser # Using dateutil for robust date parsing
-from logger import setup_logger # Import the custom logger
-import utils # Import utility functions
+from src.logger import setup_logger # Import the custom logger
+import src.utils as utils # Import utility functions
 
 log = setup_logger(__name__) # Setup logger for this module
 

@@ -6,3 +6,4 @@ google-cloud-bigquery>=3.0.0
 flask-restx==1.2.0
 functions-framework>=3.0.0
 feedparser>=6.0.0
+python-dateutil>=2.8.0

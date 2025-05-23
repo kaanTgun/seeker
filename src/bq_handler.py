@@ -2,8 +2,8 @@ import os
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from google.api_core.exceptions import NotFound
-import utils # Import utility functions
-from logger import setup_logger # Import the custom logger
+import src.utils as utils # Import utility functions
+from src.logger import setup_logger # Import the custom logger
 
 log = setup_logger(__name__) # Setup logger for this module
 

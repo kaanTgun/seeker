@@ -1,22 +1,5 @@
 steps:
-# Step 1: Build the container image
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'build'
-    - '-t'
-    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA:-latest}'
-    - '.'
-  id: 'Build Docker Image'
-
-# Step 2: Push the container image to Artifact Registry
-- name: 'gcr.io/cloud-builders/docker'
-  args:
-    - 'push'
-    - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA:-latest}'
-  id: 'Push to Artifact Registry'
-  waitFor: ['Build Docker Image'] # Ensures build is complete before pushing
-
-# Step 3: Deploy to Cloud Functions (2nd Gen)
+# Step 1: Deploy to Cloud Functions (2nd Gen) directly from source
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: 'gcloud'
   args:
@@ -25,7 +8,9 @@ steps:
     - '${_SERVICE_NAME}' # Function name
     - '--gen2'
     - '--region=${_REGION}'
-    - '--docker-image=${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA:-latest}'
+    - '--runtime=python311'
+    - '--source=.'
+    - '--entry-point=cloud_function_entrypoint'
     - '--trigger-http'
     - '--allow-unauthenticated' # Review and adjust as per your authentication needs
     - '--memory=${_MEMORY}'
@@ -34,14 +19,12 @@ steps:
     - '--concurrency=${_CONCURRENCY}'
     # Note: CPU for Cloud Functions (2nd gen) is allocated based on memory.
     # For 2Gi memory, it typically gets 1 vCPU.
-    # The PLATFORM (linux/amd64) from .env.deploy is the default.
     # Optional: --service-account=YOUR_FUNCTION_RUNTIME_SERVICE_ACCOUNT_EMAIL
   id: 'Deploy to Cloud Functions'
-  waitFor: ['Push to Artifact Registry'] # Ensures image is pushed before deploying
 
-# This specifies the image created by the build, which can be used by other parts of the build (e.g., for vulnerability scanning)
-images:
-  - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO_NAME}/${_SERVICE_NAME}:${COMMIT_SHA:-latest}'
+# This specifies that we're deploying directly from source, no images to build
+# images:
+#   - '${_REGION}-docker.pkg.dev/$PROJECT_ID/${_AR_REPO_NAME}/${_SERVICE_NAME}:${_TAG}'
 
 substitutions:
   _SERVICE_NAME: 'seeker-podcast-processor' # From .env.deploy SERVICE_NAME
@@ -50,7 +33,8 @@ substitutions:
   _TIMEOUT: '3600s'                        # From .env.deploy TIMEOUT (converted to seconds)
   _MAX_INSTANCES: '5'                      # From .env.deploy MAX_INSTANCES
   _CONCURRENCY: '1000'                     # From .env.deploy CONCURRENCY
-  _AR_REPO_NAME: 'seeker-functions-repo'   # IMPORTANT: You need to create this Docker repository in Artifact Registry
+  # _AR_REPO_NAME: 'seeker-functions-repo'   # Not needed for source deployment
+  # _TAG: 'latest' # Not needed for source deployment
 
 # PROJECT_ID and COMMIT_SHA are built-in substitutions provided by Cloud Build.
 # $PROJECT_ID will be automatically replaced with 'metapod-d52fc' from your .env.deploy.

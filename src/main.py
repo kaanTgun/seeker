@@ -3,17 +3,17 @@ import json
 from dotenv import load_dotenv
 from http.client import UNAUTHORIZED, OK, INTERNAL_SERVER_ERROR, BAD_REQUEST
 
-from logger import setup_logger # Import the custom logger
+from src.logger import setup_logger # Import the custom logger
 log = setup_logger(__name__) # Setup logger for this module
 
 # Attempt to load environment variables from .env file for local development
 # This is useful for local testing but won't be used in Cloud Functions environment
 load_dotenv()
 
-import auth_handler
-import rss_parser
-import gcs_handler
-import bq_handler
+import src.auth_handler as auth_handler
+import src.rss_parser as rss_parser
+import src.gcs_handler as gcs_handler
+import src.bq_handler as bq_handler
 
 from google.cloud import bigquery, storage
 from google.oauth2 import service_account

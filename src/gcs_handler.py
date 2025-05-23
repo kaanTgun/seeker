@@ -1,8 +1,8 @@
 import os
 import requests
 from google.cloud import storage
-import utils # Import utility functions
-from logger import setup_logger # Import the custom logger
+import src.utils as utils # Import utility functions
+from src.logger import setup_logger # Import the custom logger
 log = setup_logger(__name__) # Setup logger for this module
 
 def download_file(url):

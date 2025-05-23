@@ -1,6 +1,6 @@
 from google.cloud import bigquery
 from google.oauth2 import service_account # If you're using this
-from logger import setup_logger # Import the custom logger
+from src.logger import setup_logger # Import the custom logger
 
 credentials = service_account.Credentials.from_service_account_file(
     'credentials.json')

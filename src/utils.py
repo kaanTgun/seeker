@@ -1,6 +1,6 @@
 import uuid
 import re
-from logger import setup_logger # Import the custom logger
+from src.logger import setup_logger # Import the custom logger
 
 log = setup_logger(__name__) # Setup logger for this module
 
