@@ -3,7 +3,8 @@ import requests
 from datetime import datetime, timezone # Import timezone
 from dateutil import parser as date_parser # Using dateutil for robust date parsing
 from src.logger import setup_logger # Import the custom logger
-import src.utils as utils # Import utility functions
+import src.utils as utils
+from src.uuid_handler import generate_show_id, generate_episode_id, generate_audio_id, generate_person_id
 
 log = setup_logger(__name__) # Setup logger for this module
 
@@ -64,6 +65,7 @@ def parse_duration_to_seconds(duration_str):
         return None
 
 # Add configured_podcast_name to the function signature
+# pylint: disable=C901
 def extract_episode_data(feed_entry, show_data, configured_podcast_name):
     """
     Extracts relevant data from a single feed entry and maps it to BigQuery schema.
@@ -109,10 +111,10 @@ def extract_episode_data(feed_entry, show_data, configured_podcast_name):
             log.error(f"Error parsing published date '{published_date_str}' for episode '{episode_title}': {e}")
             return None # Skip episode if date parsing fails
 
-        # --- Generate UUIDs ---
-        show_id = utils.generate_uuid() # Generate a new ID for the show if it's the first time processing this feed
-        episode_id = utils.generate_uuid()
-        audio_id = utils.generate_uuid()
+        # --- Generate UUIDs using uuid_handler ---
+        show_id = generate_show_id(feed_show_title)
+        episode_id = generate_episode_id(show_id, episode_title)
+        audio_id = generate_audio_id(episode_id)
 
         # --- Map data to BigQuery Schema ---
 
@@ -141,6 +143,7 @@ def extract_episode_data(feed_entry, show_data, configured_podcast_name):
             feed_show_title = title_from_feed_entry_feed
         else:
             feed_show_title = 'Unknown Show' # Absolute fallback
+
 
         # Original logic for other show details, using the determined feed_show_title
         feed_show_description = feed_entry.get('feed', {}).get('subtitle', feed_entry.get('feed', {}).get('summary', ''))
@@ -193,8 +196,8 @@ def extract_episode_data(feed_entry, show_data, configured_podcast_name):
         # Process authors (often hosts)
         if 'authors' in feed_entry:
             for author in feed_entry['authors']:
-                person_id = utils.generate_uuid()
                 full_name = author.get('name', 'Unknown Author')
+                person_id = generate_person_id(full_name)
                 people_data.append({
                     "id": person_id,
                     "full_name": full_name,
@@ -212,8 +215,8 @@ def extract_episode_data(feed_entry, show_data, configured_podcast_name):
         # Process contributors (often guests)
         if 'contributors' in feed_entry:
              for contributor in feed_entry['contributors']:
-                person_id = utils.generate_uuid()
                 full_name = contributor.get('name', 'Unknown Contributor')
+                person_id = generate_person_id(full_name)
                 people_data.append({
                     "id": person_id,
                     "full_name": full_name,
