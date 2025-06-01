@@ -28,7 +28,7 @@ def download_file(url):
 
 def upload_to_gcs(client, bucket_name, destination_blob_name, data):
     """
-    Uploads data to a Google Cloud Storage bucket.
+    Uploads data to a Google Cloud Storage bucket if the file doesn't already exist.
 
     Args:
         client: The Google Cloud Storage client instance.
@@ -37,14 +37,19 @@ def upload_to_gcs(client, bucket_name, destination_blob_name, data):
         data: The content to upload (bytes).
 
     Returns:
-        True if upload is successful, False otherwise.
+        True if file exists or upload is successful, False otherwise.
     """
     try:
         bucket = client.bucket(bucket_name)
         blob = bucket.blob(destination_blob_name)
 
-        blob.upload_from_string(data)
+        # Check if file already exists
+        if blob.exists():
+            log.info(f"File already exists at gs://{bucket_name}/{destination_blob_name}")
+            return True
 
+        # File doesn't exist, proceed with upload
+        blob.upload_from_string(data)
         log.info(f"File uploaded to gs://{bucket_name}/{destination_blob_name}") # Replaced print with log.info
         return True
     except Exception as e:
